@@ -1,0 +1,18 @@
+{
+  "name": "nodejs-alura-api-rest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "consign": "^0.1.5",
+    "express": "^4.15.3",
+    "express-validator": "^3.2.1",
+    "mysql": "^2.13.0"
+  }
+}
