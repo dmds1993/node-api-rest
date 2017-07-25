@@ -1,5 +1,5 @@
 {
-  "name": "nodejs-alura-api-rest",
+  "name": "node-api-rest",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -13,6 +13,9 @@
     "consign": "^0.1.5",
     "express": "^4.15.3",
     "express-validator": "^3.2.1",
-    "mysql": "^2.13.0"
+    "jspdf": "^1.3.3",
+    "mysql": "^2.13.0",
+    "restify": "^5.0.1",
+    "restify-clients": "^1.5.0"
   }
 }

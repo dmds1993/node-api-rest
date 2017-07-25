@@ -6,12 +6,12 @@ module.exports = function(app) {
   });
 
   app.post("/pagamentos/pagamento",function(req, res) {
-    let pagamento = req.body;
+    let pagamento = req.body.pagamento;
     pagamento.status = 'Pagamento Criado';
     pagamento.data = new Date();
 
-    req.assert('forma_de_pagamento', 'Forma de pagamento é obrigatoria').notEmpty();
-    req.assert('valor', 'Valor não pode ser vazio, e deve conter ate 2 casas decimais').notEmpty().isFloat();
+    req.assert('pagamento.forma_de_pagamento', 'Forma de pagamento é obrigatoria').notEmpty();
+    req.assert('pagamento.valor', 'Valor não pode ser vazio, e deve conter ate 2 casas decimais').notEmpty().isFloat();
 
     let erros = req.validationErrors();
 
@@ -32,6 +32,38 @@ module.exports = function(app) {
       }
       pagamento.id = result.insertId
       console.log('pagamento criado: ', result);
+      if (pagamento.forma_de_pagamento === 'cartao') {
+        console.log('entrei aqui')
+        let cartao = req.body.cartao;
+        let clienteCartao = app.servicos.clienteCartoes
+        clienteCartao.autoriza(cartao, (exception, request, response, retorno) => {
+          if (exception) {
+            console.log(exception);
+            return res.status(400).json(exception);
+          }
+
+          res.location(`/pagamentos/pagamento/${pagamento.id}`)
+
+          let responseCartao = {
+            dados_do_pagamento: pagamento,
+            "cartao": retorno,
+            links: [{
+              href: `http://localhost:3000/pagamentos/pagamento/${pagamento.id}`,
+              rel: 'confirmar',
+              method: 'PUT'
+            }, {
+              href: `http://localhost:3000/pagamentos/pagamento/${pagamento.id}`,
+              rel: 'deletar',
+              method: 'DELETE'
+            }]
+          }
+          return res.status(200).json(responseCartao)
+
+        })
+
+        // res.json(cartao);
+        return
+      }
       res.location(`/pagamentos/pagamento/${pagamento.id}`)
       let response = {
         dados_do_pagamento: pagamento,
