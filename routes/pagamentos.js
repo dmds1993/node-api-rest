@@ -23,8 +23,8 @@ module.exports = function(app) {
     console.log('processando pagamento...');
 
     let connection = app.persistencia.connectionFactory();
-    let pagamentoDao = new app.persistencia.PagamentoDAO(connection);
-
+    let pagamentoDao = app.persistencia.PagamentoDAO;
+    console.log('app.persistencia.PagamentoDAO', app.persistencia.PagamentoDAO)
     pagamentoDao.salva(pagamento, function(exception, result){
       if (exception) {
         console.log('Erro ao inserir no banco');

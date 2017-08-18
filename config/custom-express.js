@@ -10,9 +10,10 @@ module.exports = function() {
   app.use(bodyParser.json());
   app.use(expressValidator());
   consign()
-  .include('controllers')
+  .include('routes')
   .then('persistencia')
   .then('servicos')
+  .then('util')
   .into(app)
   return app
 }
