@@ -21,9 +21,9 @@ module.exports = function(app) {
     }
 
     console.log('processando pagamento...');
-
+    let memcached = app.servicos.memcached;
     let connection = app.persistencia.connectionFactory();
-    let pagamentoDao = app.persistencia.PagamentoDAO;
+    let pagamentoDao = new app.persistencia.PagamentoDAO(connection);
     console.log('app.persistencia.PagamentoDAO', app.persistencia.PagamentoDAO)
     pagamentoDao.salva(pagamento, function(exception, result){
       if (exception) {
@@ -31,6 +31,9 @@ module.exports = function(app) {
         return res.status(400).json(exception)
       }
       pagamento.id = result.insertId
+      memcached.cliente().set(`pagamento-${pagamento.id}`, pagamento, 60000, function(error) {
+        console.log('salvando dados no cache')
+      });
       console.log('pagamento criado: ', result);
       if (pagamento.forma_de_pagamento === 'cartao') {
         console.log('entrei aqui')
@@ -79,6 +82,32 @@ module.exports = function(app) {
       }
       res.json(response);
     });
+  });
+
+  app.get('/pagamentos/pagamentos/:id', function(req, res) {
+    console.log('Busca de pagamento por id')
+    let id = req.params.id;
+    let connection = app.persistencia.connectionFactory();
+    let pagamentoDao = new app.persistencia.PagamentoDAO(connection);
+    let memcached = app.servicos.memcached;
+    let pagamentoCache = memcached.cliente().get(`pagamento-${req.params.id}`, (erro, retorno) => {
+      console.log('ou eu sou o retorno', retorno)
+      if (erro || !retorno) {
+        return pagamentoDao.buscaPorId(id, function(erro, resultado) {
+          if (erro) {
+            console.log('Erro ao buscar pagamento');
+            return res.status(500).json(erro);
+          }
+          console.log('Pagamento encontrado do banco');
+          console.log(`MISS - Não foi encontrado pagamento-${req.params.id}, no cache`)
+          return res.status(200).json(resultado)
+        });
+      }
+      console.log('Eu sou o retorno do cache')
+      retorno.cache = 'Eu sou os dados do cache';
+
+      return res.status(200).json(retorno);
+    })
   });
 
   app.put('/pagamentos/pagamento/:id', function(req, res) {
